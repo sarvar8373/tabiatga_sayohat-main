@@ -1,6 +1,8 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
+  const { t } = useTranslation();
   return (
     <div>
       <footer className="footer-area pt-85 pb-60">
@@ -8,15 +10,8 @@ export default function Footer() {
           <div className="row">
             <div className="col-lg-4 col-sm-8">
               <div className="widget contact-widget">
-                <h3>Sayohat haqida</h3>
-                <p>
-                  Sarguzasht - bu sizning qiziqishingizga ergashish va noma'lum
-                  narsalarni kashf qilish erkinligiga ega bo'lishdir. Sayohat
-                  uslubi qanday bo'lishidan qat'i nazar, bizning turlarimiz
-                  yaxshi rejalashtirilgan marshrutlarni o'z ishingizni qilish va
-                  o'zingiz bir oz kashf qilish moslashuvchanligi bilan
-                  muvozanatlashtiradi.
-                </p>
+                <h3>{t("footer.about")}</h3>
+                <p>{t("footer.about_text")}</p>
                 <ul>
                   <li>
                     <a href="#">
@@ -48,36 +43,42 @@ export default function Footer() {
             </div>
             <div className="col-lg-4 col-sm-8">
               <div className="widget quick-link-categories">
-                <h3>Menyular</h3>
+                <h3>{t("footer.menu")}</h3>
                 <ul>
                   <li>
                     <a href="#">
-                      <i className="fal fa-angle-right"></i>Ekskursiyalar
+                      <i className="fal fa-angle-right"></i>
+                      {t("footer.ex")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
-                      <i className="fal fa-angle-right"></i>Dam olish joylari
+                      <i className="fal fa-angle-right"></i>
+                      {t("footer.places")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
-                      <i className="fal fa-angle-right"></i>Eko sentr
+                      <i className="fal fa-angle-right"></i>
+                      {t("footer.eco")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
-                      <i className="fal fa-angle-right"></i>Yo'nalishlar
+                      <i className="fal fa-angle-right"></i>
+                      {t("footer.routes")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
-                      <i className="fal fa-angle-right"></i>Sayohat
+                      <i className="fal fa-angle-right"></i>
+                      {t("footer.travel")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
-                      <i className="fal fa-angle-right"></i>Bog'lanish
+                      <i className="fal fa-angle-right"></i>
+                      {t("footer.contact")}
                     </a>
                   </li>
                 </ul>
@@ -85,23 +86,22 @@ export default function Footer() {
             </div>
             <div className="col-lg-4 col-sm-8">
               <div className="widget contact-us">
-                <h3>Bog'lanish</h3>
+                <h3>{t("footer.contact")}</h3>
                 <ul>
                   <li>
-                    <a href="#">
-                      <i className="fal fa-paper-plane"></i>
-                      Buxoro viloyati, 200700, Kogon shahri, GSP
+                    <a>
+                      <i className="fal fa-paper-plane"></i>{" "}
+                      {t("footer.address")}
                     </a>
                   </li>
                   <li>
-                    <a href="#">
-                      <i className="fal fa-envelope"></i>support@eco.uz
+                    <a>
+                      <i className="fal fa-envelope"></i> {t("footer.email")}
                     </a>
                   </li>
                   <li>
-                    <a href="#">
-                      <i className="fal fa-phone-alt"></i>+99893 683 93 81
-                      +99894 653 22 81, +99894 540 03 07 +99891 418 55 65
+                    <a>
+                      <i className="fal fa-phone-alt"></i> {t("footer.phone")}
                     </a>
                   </li>
                 </ul>
@@ -115,7 +115,7 @@ export default function Footer() {
           <div className="row">
             <div className="col-sm-8">
               <div className="copyright-text text-center">
-                <p>© 2024 All rights reserved.</p>
+                <p>{t("footer.copy")}</p>
               </div>
             </div>
           </div>

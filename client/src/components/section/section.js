@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "../../api/host/host";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 export default function Section() {
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -8,7 +9,7 @@ export default function Section() {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [error, setError] = useState("");
   const [selectedMavsum, setSelectedMavsum] = useState("");
-
+  const { t } = useTranslation();
   useEffect(() => {
     // Fetch regions
     axios
@@ -60,9 +61,7 @@ export default function Section() {
                     <div className="slide-content-area">
                       <div className="single-slide-content text-center">
                         <div className="content-text pb-5">
-                          <h1 className="display-1">
-                            Tabiat <span></span> Manzaralariga sayohat
-                          </h1>
+                          <h1 className="display-1">{t("title1")}</h1>
                           {/* <h2>
                         It's time for new
                         <strong>Escapes, Thrills</strong>
@@ -79,7 +78,7 @@ export default function Section() {
                               }
                               className="form-control"
                             >
-                              <option value="">Viloyatni tanlang</option>
+                              <option value=""> {t("select_region")}</option>
                               {regions.map((region) => (
                                 <option key={region.id} value={region.id}>
                                   {region.name}
@@ -95,7 +94,7 @@ export default function Section() {
                               className="form-control"
                               disabled={!selectedRegion}
                             >
-                              <option value="">Tumanni tanlang</option>
+                              <option value=""> {t("select_district")}</option>
                               {districts.map((district) => (
                                 <option key={district.id} value={district.id}>
                                   {district.name}
@@ -112,17 +111,17 @@ export default function Section() {
                               }
                             >
                               <option value="" disabled>
-                                Mavsum tanlash
+                                {t("select_season")}
                               </option>
-                              <option value="1">Qish</option>
-                              <option value="2">Bahor</option>
-                              <option value="3">Yoz</option>
-                              <option value="4">Kuz</option>
+                              <option value="1">{t("qish")}</option>
+                              <option value="2">{t("bahor")}</option>
+                              <option value="3">{t("yoz")}</option>
+                              <option value="4">{t("kuz")}</option>
                             </select>
                             <input
                               className="btn btn-theme"
                               type="submit"
-                              value="Qidirish"
+                              value={t("search")}
                             />
                           </form>
                         </div>
