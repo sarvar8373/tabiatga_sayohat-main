@@ -1,5 +1,7 @@
 import React from "react";
 import { useCart } from "../../context/CartContext";
+import Header from "../../components/header/header";
+import Footer from "../../components/footer/footer";
 
 export default function CartPage() {
   const { cart, increase, decrease, removeFromCart, totalPrice, clearCart } =
@@ -10,8 +12,30 @@ export default function CartPage() {
 
   return (
     <div className="container mt-5">
+      <header
+        id="header"
+        className="header-area style-2 header-border absulate-header"
+      >
+        <Header />
+      </header>{" "}
+      <div className="bradcumb-area cart overlay-bg-4">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col">
+              <div className="bradcumb text-center">
+                <h3>Cart</h3>
+                <ul>
+                  <li>
+                    <a href="/">Home</a>
+                  </li>
+                  <li>Cart</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <h2>Savat</h2>
-
       <table className="table mt-3">
         <thead>
           <tr>
@@ -72,12 +96,11 @@ export default function CartPage() {
           ))}
         </tbody>
       </table>
-
       <h3 className="mt-4">Umumiy: {totalPrice} so'm</h3>
-
       <button className="btn btn-warning mt-3" onClick={clearCart}>
         Savatni tozalash
       </button>
+      <Footer />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Modal, Button, Form } from "react-bootstrap";
 import StatusPanel from "../../../../components/status/statusPanel";
-import { useAuth } from "../../../../context/AuthContext";
+import { useSelector } from "react-redux";
 
 const AdobeView = ({ adobe, onClose, onUpdateStatus, onUpdateCause }) => {
   // Manage local state for status, cause, and form validity
@@ -10,7 +10,7 @@ const AdobeView = ({ adobe, onClose, onUpdateStatus, onUpdateCause }) => {
   const [cause, setCause] = useState(adobe?.tour || "");
   const [isCauseRequired, setIsCauseRequired] = useState(false);
   const [isCauseValid, setIsCauseValid] = useState(true); // Track if the cause is valid
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   // Handle status update
   const handleStatusChange = (newStatus) => {
@@ -67,12 +67,12 @@ const AdobeView = ({ adobe, onClose, onUpdateStatus, onUpdateCause }) => {
         <p>
           <strong>Tuman:</strong> {adobe.district_id}
         </p>
-        {["admin", "user"].includes(userDetails.role) && (
+        {["admin", "user"].includes(user.role) && (
           <p>
             <strong>Sababi:</strong> {adobe.tour}
           </p>
         )}
-        {["admin", "region"].includes(userDetails.role) && (
+        {["admin", "region"].includes(user.role) && (
           <Form.Group className="mb-3" controlId="formCause">
             <Form.Label>Sababi</Form.Label>
             <Form.Control
@@ -88,7 +88,7 @@ const AdobeView = ({ adobe, onClose, onUpdateStatus, onUpdateCause }) => {
         <StatusPanel status={status} />
       </Modal.Body>
       <Modal.Footer>
-        {["admin", "region"].includes(userDetails.role) && (
+        {["admin", "region"].includes(user.role) && (
           <div>
             {status !== 1 && (
               <Button

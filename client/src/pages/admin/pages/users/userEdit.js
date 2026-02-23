@@ -1,51 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { getSelectRegion, putUser } from "../../../../http/usersApi";
-import { useAuth } from "../../../../context/AuthContext";
+import { getSelectRegion, putUser } from "../../../../service/usersApi";
+import { useSelector } from "react-redux";
 
-const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
-  const [editUser, setEditUser] = useState(user);
+const EditUserForm = ({ users, regions, districts, onSave, onCancel }) => {
+  const [editUser, setEditUser] = useState(users);
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [filteredRegions, setFilteredRegions] = useState(regions);
   const [filteredDistricts, setFilteredDistricts] = useState(districts);
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   useEffect(() => {
-    if (user) {
-      setEditUser(user);
-      setSelectedRegion(user.region_id || "");
-      setSelectedDistrict(user.district_id || "");
+    if (users) {
+      setEditUser(users);
+      setSelectedRegion(users.region_id || "");
+      setSelectedDistrict(users.district_id || "");
     }
-  }, [user]);
+  }, [users]);
   useEffect(() => {
-    if (userDetails.role === "region" && userDetails.region_id) {
+    if (user.role === "region" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
-      setSelectedRegion(userDetails.region_id);
+      setSelectedRegion(user.region_id);
       setFilteredDistricts([]);
-    } else if (userDetails.role === "district" && userDetails.region_id) {
+    } else if (user.role === "district" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
 
-      getSelectRegion(userDetails.region_id)
+      getSelectRegion(user.region_id)
         .then((response) => {
           if (response.data.Status) {
             const filteredDistricts = response.data.Result.filter(
-              (district) => district.id === userDetails.district_id
+              (district) => district.id === user.district_id,
             );
             setFilteredDistricts(filteredDistricts);
 
             setEditUser((prev) => ({
               ...prev,
-              region_id: userDetails.region_id,
-              district_id: userDetails.district_id,
+              region_id: user.region_id,
+              district_id: user.district_id,
             }));
 
-            setSelectedRegion(userDetails.region_id);
-            setSelectedDistrict(userDetails.district_id);
+            setSelectedRegion(user.region_id);
+            setSelectedDistrict(user.district_id);
           } else {
             setError(response.data.Error);
           }
@@ -58,7 +58,7 @@ const EditUserForm = ({ user, regions, districts, onSave, onCancel }) => {
       setFilteredRegions(regions);
       setFilteredDistricts(districts);
     }
-  }, [regions, districts, userDetails]);
+  }, [regions, districts, user]);
 
   useEffect(() => {
     if (selectedRegion) {

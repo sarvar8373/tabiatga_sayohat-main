@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
-import { getNotification } from "../../../http/notificationApi";
+import { Link, useNavigate } from "react-router-dom";
+import { getNotification } from "../../../service/notificationApi";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../../slice/auth";
+import { removeItem } from "../../../helpers/persistans";
 
 export default function Navbar() {
   const [isCollapseTwoOpen, setIsCollapseTwoOpen] = useState(false);
   const [isCollapseTwoOne, setIsCollapseTwoOne] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationCount, setNotificationCount] = useState(0);
-  const { userDetails, logout } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleLogoutClick = () => {
-    logout();
+    dispatch(logout());
+    removeItem("token");
+    navigate("/login");
   };
 
   const fetchNotifications = () => {
@@ -19,10 +25,10 @@ export default function Navbar() {
       .then((notificationResult) => {
         if (notificationResult.data.Status) {
           const newNotifications =
-            userDetails.role === "admin"
+            user.role === "admin"
               ? notificationResult.data.Result
               : notificationResult.data.Result.filter(
-                  (notification) => notification.user_id === userDetails.id
+                  (notification) => notification.user_id === user.id,
                 );
           setNotifications(newNotifications);
           setNotificationCount(newNotifications.length);
@@ -201,7 +207,7 @@ export default function Navbar() {
             aria-expanded={isCollapseTwoOpen}
           >
             <span className="mr-2 d-none d-lg-inline text-gray-600 small">
-              {userDetails.full_name}
+              {user.full_name}
             </span>
             {/* <img
               className="img-profile rounded-circle"

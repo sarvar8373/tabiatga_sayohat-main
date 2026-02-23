@@ -1,19 +1,19 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BASE_URL } from "../../../../api/host/host";
 import AdobeEdit from "./adobeEdit";
 import debounce from "lodash/debounce";
 import SearchItem from "../../../../components/search-item/searchItem";
-import { getDistricts, getRegions } from "../../../../http/usersApi";
+import { getDistricts, getRegions } from "../../../../service/usersApi";
 import {
   deleteTours,
   getTours,
   updateTourCause,
   updateTourStatus,
-} from "../../../../http/adobeApi";
-import { useAuth } from "../../../../context/AuthContext";
-import { getTourService } from "../../../../http/tourServices";
+} from "../../../../service/adobeApi";
+import { getTourService } from "../../../../service/tourServices";
 import AdobeView from "./adobeView";
-import { getOrganizations } from "../../../../http/organizationApi";
+import { getOrganizations } from "../../../../service/organizationApi";
+import { useSelector } from "react-redux";
 
 export default function AdobeList() {
   const [tours, setTours] = useState([]);
@@ -31,7 +31,7 @@ export default function AdobeList() {
   const [editMode, setEditMode] = useState(false);
   const [districts, setDistricts] = useState([]);
   const [organizations, setOrganizations] = useState([]);
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
@@ -133,13 +133,13 @@ export default function AdobeList() {
         if (response.data.Status) {
           setTours((prevTours) =>
             prevTours.map((tour) =>
-              tour.id === id ? { ...tour, status: newStatus } : tour
-            )
+              tour.id === id ? { ...tour, status: newStatus } : tour,
+            ),
           );
           setFilteredPosts((prevFilteredPosts) =>
             prevFilteredPosts.map((post) =>
-              post.id === id ? { ...post, status: newStatus } : post
-            )
+              post.id === id ? { ...post, status: newStatus } : post,
+            ),
           );
         }
       })
@@ -151,13 +151,13 @@ export default function AdobeList() {
         if (response.data.Status) {
           setTours((prevTours) =>
             prevTours.map((tour) =>
-              tour.id === id ? { ...tour, cause: newCause } : tour
-            )
+              tour.id === id ? { ...tour, cause: newCause } : tour,
+            ),
           );
           setFilteredPosts((prevFilteredPosts) =>
             prevFilteredPosts.map((post) =>
-              post.id === id ? { ...post, status: newCause } : post
-            )
+              post.id === id ? { ...post, status: newCause } : post,
+            ),
           );
         }
       })
@@ -201,49 +201,49 @@ export default function AdobeList() {
         : true;
       const matchesPrice = post.price.toLowerCase().includes(priceSearchTerm);
 
-      if (userDetails) {
-        if (userDetails.role === "region") {
+      if (user) {
+        if (user.role === "region") {
           return (
             matchesTitle &&
             matchesRegion &&
             matchesPrice &&
-            post.region_id === userDetails.region_id
+            post.region_id === user.region_id
           );
         }
-        if (userDetails.role === "district") {
+        if (user.role === "district") {
           return (
             matchesTitle &&
             matchesRegion &&
             matchesPrice &&
-            post.district_id === userDetails.district_id
+            post.district_id === user.district_id
           );
         }
-        if (userDetails.role === "user") {
+        if (user.role === "user") {
           return (
             matchesTitle &&
             matchesRegion &&
             matchesPrice &&
-            post.user_id === userDetails.id
+            post.user_id === user.id
           );
         }
       }
       return matchesTitle && matchesRegion && matchesPrice;
     });
     setFilteredPosts(filtered);
-  }, [regions, tours, searchTerm, searchTerm1, searchTerm2, userDetails]);
+  }, [regions, tours, searchTerm, searchTerm1, searchTerm2, user]);
 
   const handleSave = (updatedAdobe) => {
     if (updatedAdobe && updatedAdobe.id) {
       setTours((prevTours) => {
         const updatedTours = prevTours.map((tour) =>
-          tour.id === updatedAdobe.id ? updatedAdobe : tour
+          tour.id === updatedAdobe.id ? updatedAdobe : tour,
         );
         return updatedTours;
       });
 
       setFilteredPosts((prevFilteredPosts) => {
         const updatedFilteredPosts = prevFilteredPosts.map((adobe) =>
-          adobe.id === updatedAdobe.id ? updatedAdobe : adobe
+          adobe.id === updatedAdobe.id ? updatedAdobe : adobe,
         );
         return updatedFilteredPosts;
       });
@@ -342,7 +342,7 @@ export default function AdobeList() {
                       >
                         <i className="fas fa-eye"></i>
                       </button>
-                      {["admin", "user"].includes(userDetails.role) && (
+                      {["admin", "user"].includes(user.role) && (
                         <button
                           onClick={() => handleEdit(c)}
                           className="btn btn-warning me-3"
@@ -350,7 +350,7 @@ export default function AdobeList() {
                           <i className="fas fa-edit"></i>
                         </button>
                       )}
-                      {["admin"].includes(userDetails.role) && (
+                      {["admin"].includes(user.role) && (
                         <button
                           onClick={() => handleDelete(c.id)}
                           className="btn btn-danger"

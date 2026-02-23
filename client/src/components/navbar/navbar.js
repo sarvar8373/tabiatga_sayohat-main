@@ -1,10 +1,9 @@
-import React from "react";
-import { useAuth } from "../../context/AuthContext";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import styles from "../../style/App.module.css";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 export default function Navbar() {
-  const { isAuthenticated } = useAuth();
+  const { loggedIn } = useSelector((state) => state.auth);
   const location = useLocation();
   const currentPath = location.pathname;
   const { t } = useTranslation();
@@ -113,7 +112,7 @@ export default function Navbar() {
                   </li>
 
                   <li className="lgn">
-                    {isAuthenticated ? (
+                    {loggedIn ? (
                       <a
                         href="/dashboard"
                         className={

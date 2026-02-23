@@ -1,11 +1,11 @@
 // src/components/organization/OrganizationView.js
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useAuth } from "../../../../context/AuthContext";
 import StatusPanel from "../../../../components/status/statusPanel";
-import { getUsers } from "../../../../http/usersApi";
+import { getUsers } from "../../../../service/usersApi";
+import { useSelector } from "react-redux";
 
 const OrganizationView = ({
   organization,
@@ -18,7 +18,7 @@ const OrganizationView = ({
   const [authors, setAuthors] = useState([]);
   const [isCauseRequired, setIsCauseRequired] = useState(false);
   const [isCauseValid, setIsCauseValid] = useState(true); // Track if the cause is valid
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     getUsers()
@@ -90,7 +90,7 @@ const OrganizationView = ({
         <p>
           <strong>Sababi:</strong> {organization.comment}
         </p>
-        {["admin", "region"].includes(userDetails.role) && (
+        {["admin", "region"].includes(user.role) && (
           <Form.Group className="mb-3" controlId="formCause">
             <Form.Label>Sababi</Form.Label>
             <Form.Control
@@ -106,7 +106,7 @@ const OrganizationView = ({
         <StatusPanel status={status} />
       </Modal.Body>
       <Modal.Footer>
-        {["admin", "region"].includes(userDetails.role) && (
+        {["admin", "region"].includes(user.role) && (
           <div>
             {status !== 1 && (
               <Button

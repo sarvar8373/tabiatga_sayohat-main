@@ -1,7 +1,7 @@
-import AxiosClient from "./apiClient";
+import axios from "./apiClient";
 
 export function postPosts(formData) {
-  return AxiosClient.post("/posts/add_posts", formData, {
+  return axios.post("/posts/add_posts", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -9,19 +9,19 @@ export function postPosts(formData) {
 }
 
 export function getPosts() {
-  return AxiosClient.get("/posts/posts");
+  return axios.get("/posts/posts");
 }
 
 export function getCategories() {
-  return AxiosClient.get("/category/categories");
+  return axios.get("/category/categories");
 }
 
 export function deletePosts(id) {
-  return AxiosClient.delete(`/posts/post/${id}`);
+  return axios.delete(`/posts/post/${id}`);
 }
 
 export function putPost(id, updatedPost) {
-  return AxiosClient.put(`/posts/post/${id}`, updatedPost, {
+  return axios.put(`/posts/post/${id}`, updatedPost, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

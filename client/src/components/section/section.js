@@ -2,34 +2,34 @@ import React, { useEffect, useState } from "react";
 import { BASE_URL } from "../../api/host/host";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "../../hooks/useLocations";
 export default function Section() {
-  const [regions, setRegions] = useState([]);
-  const [districts, setDistricts] = useState([]);
+  const location = useLocation();
+
+  // useLocation'dan kelgan boshlang'ich ma'lumotlar (agar bo'lsa)
+  const initialRegions = location.state?.regions || [];
+  const initialDistricts = location.state?.districts || [];
+
+  const [regions, setRegions] = useState(initialRegions);
+  const [districts, setDistricts] = useState(initialDistricts);
+
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [error, setError] = useState("");
   const [selectedMavsum, setSelectedMavsum] = useState("");
+  const [error, setError] = useState("");
   const { t } = useTranslation();
+
   useEffect(() => {
-    // Fetch regions
-    axios
-      .get(`${BASE_URL}/region/regions`)
-      .then((response) => {
-        if (response.data.Status) {
-          setRegions(response.data.Result);
-        } else {
-          setError(response.data.Error);
-        }
-      })
-      .catch((err) => {
-        setError("Error fetching regions.");
-        console.error(err);
-      });
+    if (regions.length === 0) {
+      axios
+        .get(`${BASE_URL}/region/regions`)
+        .then((res) => res.data.Status && setRegions(res.data.Result))
+        .catch(() => setError("Regionlarni yuklashda xatolik"));
+    }
   }, []);
 
   useEffect(() => {
     if (selectedRegion) {
-      // Fetch districts based on selected region
       axios
         .get(`${BASE_URL}/district/districts/region/${selectedRegion}`)
         .then((response) => {
@@ -40,13 +40,13 @@ export default function Section() {
           }
         })
         .catch((err) => {
-          setError("Error fetching districts.");
+          setError("Tumanlarni yuklashda xatolik.");
           console.error(err);
         });
     } else {
-      // Reset districts if no region is selected
       setDistricts([]);
     }
+    setSelectedDistrict("");
   }, [selectedRegion]);
   return (
     <section className="slider-area">

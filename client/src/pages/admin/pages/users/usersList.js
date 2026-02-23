@@ -1,15 +1,20 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import EditUserForm from "./userEdit";
 import SearchItem from "../../../../components/search-item/searchItem";
 import debounce from "lodash/debounce";
-import {
+import AuthService, {
   deleteUser,
   getDistricts,
   getRegions,
   getUsers,
-} from "../../../../http/usersApi";
-import { useAuth } from "../../../../context/AuthContext";
+} from "../../../../service/usersApi";
 import UserView from "./userView";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getUsersFailure,
+  getUsersStart,
+  getUsersSuccess,
+} from "../../../../slice/auth";
 
 export default function UsersList() {
   const [users, setUsers] = useState([]);
@@ -26,7 +31,8 @@ export default function UsersList() {
   const [searchTerm4, setSearchTerm4] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(10);
-  const { userDetails } = useAuth();
+  const dispatch = useDispatch();
+  const { user, Result, isLoading } = useSelector((state) => state.auth);
 
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
@@ -42,6 +48,8 @@ export default function UsersList() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   // Fetch regions
+  console.log(Result);
+
   useEffect(() => {
     getRegions()
       .then((response) => {
@@ -75,20 +83,12 @@ export default function UsersList() {
 
   // Fetch users
   useEffect(() => {
-    getUsers()
-      .then((result) => {
-        if (result.data.Status) {
-          setUsers(result.data.Result);
-          setFilteredUsers(result.data.Result);
-        } else {
-          setError(result.data.Error);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Error fetching users.");
-      });
-  }, []);
+    if (Result && Array.isArray(Result)) {
+      setUsers(Result);
+      setFilteredUsers(Result);
+      console.log(users);
+    }
+  }, [Result]);
   const handleEdit = (user) => {
     if (user) {
       setSelectedUser(user);
@@ -117,26 +117,26 @@ export default function UsersList() {
     const regionSearchTerm = searchTerm3.toLowerCase();
     const districtSearchTerm = searchTerm4.toLowerCase();
 
-    const filtered = users.filter((user) => {
-      const matchesPhone = user.phone_number
+    const filtered = users.filter((use) => {
+      const matchesPhone = use.phone_number
         .toLowerCase()
         .includes(phoneSearchTerm);
 
-      const matchesFullName = user.full_name
+      const matchesFullName = use.full_name
         .toLowerCase()
         .includes(fioSearchTerm);
 
-      const region = regions.find((r) => r.id === user.region_id);
+      const region = regions.find((r) => r.id === use.region_id);
       const matchesRegion = region
         ? region.name.toLowerCase().includes(regionSearchTerm)
         : true;
 
-      const district = districts.find((d) => d.id === user.district_id);
+      const district = districts.find((d) => d.id === use.district_id);
       const matchesDistrict = district
         ? district.name.toLowerCase().includes(districtSearchTerm)
         : true;
 
-      if (userDetails && userDetails.role === "region") {
+      if (user && user.role === "region") {
         // For users with "region" role, only show "district" and "user" roles
         if (user.role === "district" || user.role === "user") {
           return (
@@ -144,19 +144,19 @@ export default function UsersList() {
             matchesFullName &&
             matchesRegion &&
             matchesDistrict &&
-            user.region_id === userDetails.region_id
+            user.region_id === user.region_id
           );
         }
         return false;
       }
-      if (userDetails && userDetails.role === "district") {
+      if (user && user.role === "district") {
         if (user.role === "user") {
           return (
             matchesPhone &&
             matchesFullName &&
             matchesRegion &&
             matchesDistrict &&
-            user.region_id === userDetails.region_id
+            user.region_id === user.region_id
           );
         }
         return false;
@@ -182,14 +182,14 @@ export default function UsersList() {
     if (updatedUser && updatedUser.id) {
       setUsers((prevUser) => {
         const updatedUsers = prevUser.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
+          user.id === updatedUser.id ? updatedUser : user,
         );
         return updatedUsers;
       });
 
       setFilteredUsers((prevFilteredPosts) => {
         const updatedFilteredPosts = prevFilteredPosts.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
+          user.id === updatedUser.id ? updatedUser : user,
         );
         return updatedFilteredPosts;
       });
@@ -233,7 +233,7 @@ export default function UsersList() {
       )}
       {editMode ? (
         <EditUserForm
-          user={selectedUser}
+          users={selectedUser}
           regions={regions}
           districts={districts}
           onSave={handleSave}

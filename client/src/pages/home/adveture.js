@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../../api/host/host";
-import { getTours } from "../../http/adobeApi";
+import { getTours } from "../../service/adobeApi";
 import Modal from "../adventure/Modal";
 
 export default function Adventure() {

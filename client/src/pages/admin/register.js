@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Header from "../../components/header/header";
 import Footer from "../../components/footer/footer";
 import { useNavigate } from "react-router-dom";
-import { postRegister } from "../../http/usersApi";
+import { postRegister } from "../../service/usersApi";
 import { HelmetProvider, Helmet } from "react-helmet-async";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BASE_URL } from "../../api/host/host";
-import { getPosts } from "../../http/postsApi";
-import { getTourService } from "../../http/tourServices";
+import { getPosts } from "../../service/postsApi";
+import { getTourService } from "../../service/tourServices";
 
 export default function Sidebar() {
   const [posts, setPosts] = useState([]);

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { getRegions, getSelectRegion } from "../../../../http/usersApi";
-import { postTour } from "../../../../http/adobeApi";
-import { useAuth } from "../../../../context/AuthContext";
-import { getTourService } from "../../../../http/tourServices";
-import { postNotification } from "../../../../http/notificationApi";
+import { useEffect, useState } from "react";
+import { getRegions, getSelectRegion } from "../../../../service/usersApi";
+import { postTour } from "../../../../service/adobeApi";
+import { getTourService } from "../../../../service/tourServices";
+import { postNotification } from "../../../../service/notificationApi";
 import Select from "react-select";
-import { getOrganizations } from "../../../../http/organizationApi";
+import { getOrganizations } from "../../../../service/organizationApi";
 import MapLocationPicker from "../../../../components/MapLocationPicker";
+import { useSelector } from "react-redux";
 const Adobe = () => {
   const [tourServices, setTourServices] = useState([]);
   const [regions, setRegions] = useState([]);
@@ -40,7 +40,7 @@ const Adobe = () => {
     max_booking: "0",
   });
   const [images, setImages] = useState([]); // Change to handle multiple images
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   // Fetch regions
   useEffect(() => {
@@ -59,7 +59,7 @@ const Adobe = () => {
   }, []);
 
   useEffect(() => {
-    if (userDetails?.role === "admin") {
+    if (user?.role === "admin") {
       getOrganizations()
         .then((res) => {
           if (res.data.Status) {
@@ -72,7 +72,7 @@ const Adobe = () => {
         })
         .catch((err) => console.error("Tashkilotlar yuklanmadi:", err));
     }
-  }, [userDetails]);
+  }, [user]);
 
   // Fetch tour services
   useEffect(() => {
@@ -92,34 +92,30 @@ const Adobe = () => {
 
   // Filter regions and set districts based on user role
   useEffect(() => {
-    if (userDetails.role === "region" && userDetails.region_id) {
+    if (user.role === "region" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
 
       setDistricts([]);
       setSelectedRegion("");
       setSelectedDistrict("");
-    } else if (
-      userDetails.role === "district" &&
-      userDetails.region_id &&
-      userDetails.district_id
-    ) {
+    } else if (user.role === "district" && user.region_id && user.district_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
 
       if (regions.length > 0) {
-        getSelectRegion(userDetails.region_id)
+        getSelectRegion(user.region_id)
           .then((response) => {
             if (response.data.Status) {
               // Filter to show only the district that matches the user's district_id
               const filteredDistricts = response.data.Result.filter(
-                (district) => district.id === userDetails.district_id
+                (district) => district.id === user.district_id,
               );
               setDistricts(filteredDistricts);
-              setSelectedRegion(userDetails.region_id);
-              setSelectedDistrict(userDetails.district_id);
+              setSelectedRegion(user.region_id);
+              setSelectedDistrict(user.district_id);
             } else {
               setError(response.data.Error);
             }
@@ -135,7 +131,7 @@ const Adobe = () => {
       setSelectedRegion("");
       setSelectedDistrict("");
     }
-  }, [regions, userDetails]);
+  }, [regions, user]);
 
   // Fetch districts based on selected region
   useEffect(() => {
@@ -207,13 +203,13 @@ const Adobe = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!userDetails?.id) {
+    if (!user?.id) {
       setError("Foydalanuvchi ma'lumotlari topilmadi");
       return;
     }
 
     const notification = {
-      user_id: userDetails.id,
+      user_id: user.id,
       message: `Maskan: ${formData.title}`,
       type: formData.status,
     };
@@ -231,20 +227,20 @@ const Adobe = () => {
         data.append("price_description", formData.price_description);
         data.append(
           "region_id",
-          selectedRegion ? parseInt(selectedRegion) : ""
+          selectedRegion ? parseInt(selectedRegion) : "",
         );
         data.append(
           "district_id",
-          selectedDistrict ? parseInt(selectedDistrict) : ""
+          selectedDistrict ? parseInt(selectedDistrict) : "",
         );
-        data.append("user_id", userDetails.id);
+        data.append("user_id", user.id);
         data.append(
           "tourism_service_id",
-          formData.tourism_service_id.join(",")
+          formData.tourism_service_id.join(","),
         );
         data.append(
           "organization_id",
-          formData.organization_id ? String(formData.organization_id) : ""
+          formData.organization_id ? String(formData.organization_id) : "",
         );
         // ✅ bitta ID
         data.append("notification_id", notificationId);
@@ -317,7 +313,7 @@ const Adobe = () => {
               onChange={handleChange}
             />
           </div>
-          {userDetails?.role === "admin" ? (
+          {user?.role === "admin" ? (
             <div className="single-field">
               <label htmlFor="organization_id">Tashkilotni tanlang</label>
               <Select
@@ -325,7 +321,7 @@ const Adobe = () => {
                 name="organization_id"
                 placeholder="Tashkilotni tanlang"
                 value={optionss.find(
-                  (option) => option.value === formData.organization_id
+                  (option) => option.value === formData.organization_id,
                 )}
                 onChange={(option) =>
                   setFormData((prev) => ({
@@ -352,7 +348,7 @@ const Adobe = () => {
               name="tourism_service_id"
               placeholder="Faoliyatni tanlang"
               value={options.filter((option) =>
-                formData.tourism_service_id.includes(option.value)
+                formData.tourism_service_id.includes(option.value),
               )}
               onChange={handleServiceChange}
               options={options}
@@ -414,9 +410,7 @@ const Adobe = () => {
                   handleChange(e);
                 }}
                 className="form-control"
-                disabled={
-                  userDetails.role === "district" ? true : !selectedRegion
-                }
+                disabled={user.role === "district" ? true : !selectedRegion}
               >
                 <option value="">Tumanni tanlang</option>
                 {districts.length > 0 ? (
@@ -432,7 +426,7 @@ const Adobe = () => {
             </div>
           </div>
 
-          {/* {userDetails.role === "admin" && (
+          {/* {user.role === "admin" && (
             <div className="single-field">
               <label htmlFor="status">Tashkilot</label>
               <select

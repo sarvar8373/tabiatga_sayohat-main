@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { postOrganization } from "../../../../http/organizationApi";
+import { postOrganization } from "../../../../service/organizationApi";
 import {
   getRegions,
   getSelectRegion,
   getUsers,
-} from "../../../../http/usersApi";
-import { useAuth } from "../../../../context/AuthContext";
-import { postNotification } from "../../../../http/notificationApi";
+} from "../../../../service/usersApi";
+import { postNotification } from "../../../../service/notificationApi";
 import Select from "react-select";
-import { getTourService } from "../../../../http/tourServices";
+import { getTourService } from "../../../../service/tourServices";
+import { useSelector } from "react-redux";
 
 export default function OrganizationAdd() {
   const [regions, setRegions] = useState([]);
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const [districts, setDistricts] = useState([]);
   const [error, setError] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
@@ -23,10 +23,10 @@ export default function OrganizationAdd() {
     inn_pinfl: "",
     org_name: "",
     address: "",
-    phone: userDetails.phone_number || "",
+    phone: user.phone_number || "",
     mfo: "",
-    region_id: userDetails.region_id || "",
-    district_id: userDetails.district_id || "",
+    region_id: user.region_id || "",
+    district_id: user.district_id || "",
     director_name: "",
     excise_tax: [],
     notification_id: "",
@@ -96,31 +96,27 @@ export default function OrganizationAdd() {
   }, []);
 
   useEffect(() => {
-    if (userDetails.role === "region" && userDetails.region_id) {
+    if (user.role === "region" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
-      setSelectedRegion(userDetails.region_id);
+      setSelectedRegion(user.region_id);
       setSelectedDistrict("");
       setDistricts([]);
-    } else if (
-      userDetails.role === "district" &&
-      userDetails.region_id &&
-      userDetails.district_id
-    ) {
+    } else if (user.role === "district" && user.region_id && user.district_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
       if (regions.length > 0) {
-        getSelectRegion(userDetails.region_id)
+        getSelectRegion(user.region_id)
           .then((response) => {
             if (response.data.Status) {
               const filteredDistricts = response.data.Result.filter(
-                (district) => district.id === userDetails.district_id
+                (district) => district.id === user.district_id,
               );
               setDistricts(filteredDistricts);
-              setSelectedRegion(userDetails.region_id);
-              setSelectedDistrict(userDetails.district_id);
+              setSelectedRegion(user.region_id);
+              setSelectedDistrict(user.district_id);
             } else {
               setError(response.data.Error);
             }
@@ -136,7 +132,7 @@ export default function OrganizationAdd() {
       setSelectedRegion("");
       setSelectedDistrict("");
     }
-  }, [regions, userDetails]);
+  }, [regions, user]);
   const handleSelectChange = (selectedOptions) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -181,10 +177,10 @@ export default function OrganizationAdd() {
           inn_pinfl: "",
           org_name: "",
           address: "",
-          phone: userDetails.phone_number || "",
+          phone: user.phone_number || "",
           mfo: "",
-          region_id: userDetails.region_id || "",
-          district_id: userDetails.district_id || "",
+          region_id: user.region_id || "",
+          district_id: user.district_id || "",
           director_name: "",
           excise_tax: [],
           notification_id: "",
@@ -330,7 +326,7 @@ export default function OrganizationAdd() {
                 name="excise_tax"
                 placeholder="Faoliyatni tanglang"
                 value={options.filter((option) =>
-                  formData.excise_tax.includes(option.value)
+                  formData.excise_tax.includes(option.value),
                 )}
                 onChange={handleSelectChange}
                 options={options}
@@ -338,7 +334,7 @@ export default function OrganizationAdd() {
                 className="form-control"
               />
             </div>
-            {userDetails.role === "admin" && (
+            {user.role === "admin" && (
               <div className="single-field half-field">
                 <label
                   htmlFor="exampleFormControlInput1"
@@ -362,7 +358,7 @@ export default function OrganizationAdd() {
                 </select>
               </div>
             )}
-            {userDetails.role === "admin" && (
+            {user.role === "admin" && (
               <div className="single-field half-field-last">
                 <label htmlFor="status">Holati</label>
                 <select

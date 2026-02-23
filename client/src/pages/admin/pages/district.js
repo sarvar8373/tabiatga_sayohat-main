@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Card from "../../../components/cards/cards";
 import { Chart as Chartjs } from "chart.js/auto";
 import { Bar, Doughnut } from "react-chartjs-2";
-import { getDistricts } from "../../../http/usersApi";
+import { getDistricts } from "../../../service/usersApi";
 
 export default function District() {
   const [staticts, setStaticts] = useState("");

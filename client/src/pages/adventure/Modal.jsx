@@ -2,75 +2,77 @@ import React, { useState } from "react";
 import axios from "axios";
 import { BASE_URL } from "../../api/host/host";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux"; // Redux hooklar
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css"; // Ensure you have Bootstrap CSS imported
-import { getUserDetails, postLogin } from "../../http/usersApi";
-import { useAuth } from "../../context/AuthContext";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import { getUserDetails, postLogin } from "../../service/usersApi";
+import { authStart, authSuccess, authFailure } from "../../slice/auth"; // Auth slice-dan
 
 export default function AdventureModal({ adventure, showModal, handleClose }) {
   const [phone_number, setPhone_number] = useState("");
   const [full_name, setFull_name] = useState("");
   const [password, setPassword] = useState("");
   const [isExistingUser, setIsExistingUser] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [step, setStep] = useState(1);
-  const [cls, setCls] = useState("none");
+  const [localError, setLocalError] = useState("");
+
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
+
+  // Redux-dan yuklanish va xatolik holatlarini olamiz
+  const { isLoading, error: reduxError } = useSelector((state) => state.auth);
+
   const handlePhoneNumberCheck = async () => {
-    setLoading(true);
-    setError("");
+    dispatch(authStart());
+    setLocalError("");
     try {
       const response = await axios.post(`${BASE_URL}/auth/check-phone`, {
         phone_number,
       });
       setIsExistingUser(response.data.exists);
       setStep(2);
+      // Bu yerda authSuccess emas, shunchaki startni tugatish yoki holatni yangilash mumkin
+      // Lekin bizga faqat yuklanishni to'xtatish kerak
+      dispatch(authFailure(null));
     } catch (err) {
-      setError("Failed to check phone number.");
-    } finally {
-      setLoading(false);
+      setLocalError("Telefon raqamini tekshirishda xatolik.");
+      dispatch(authFailure("Check failed"));
     }
   };
 
   const handleOrder = async () => {
-    setLoading(true);
-    setError("");
+    dispatch(authStart());
+    setLocalError("");
     try {
-      let userId;
-      let token;
-
+      // 1. Yangi foydalanuvchi bo'lsa ro'yxatdan o'tkazish
       if (!isExistingUser) {
-        // Register new user
         await axios.post(`${BASE_URL}/auth/add_user`, {
           phone_number,
           full_name,
           password,
         });
       }
-      await login(phone_number, password);
-      // Login user
+
+      // 2. Login qilish
       const loginResponse = await postLogin({
         phone_number: phone_number,
         password: password,
       });
 
       if (loginResponse.data && loginResponse.data.token) {
-        token = loginResponse.data.token;
+        const token = loginResponse.data.token;
 
-        // Store the token in localStorage
-        localStorage.setItem("token", token);
+        // Redux-ga foydalanuvchi ma'lumotlarini saqlaymiz (ichida setItem("token") bor)
+        dispatch(authSuccess(loginResponse.data));
 
-        // Fetch user details with the retrieved token
+        // 3. Foydalanuvchi ID sini olish
         const userResponse = await getUserDetails();
-        userId = userResponse.data.id;
+        const userId = userResponse.data.id;
 
-        if (!userId) {
-          throw new Error("User ID is not available");
-        }
+        if (!userId) throw new Error("User ID topilmadi");
 
-        // Place order
+        // 4. Buyurtma berish
         const orderResponse = await axios.post(`${BASE_URL}/orders/add_order`, {
           user_id: userId,
           tour_id: adventure.id,
@@ -80,21 +82,17 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
         });
 
         if (orderResponse.status === 200) {
+          handleClose();
           navigate("/dashboard");
-          handleClose(); // Close the modal on successful order
-        } else {
-          setError("Xatolik yuz berdi. Status: " + orderResponse.status);
         }
       } else {
-        setError("Tizimga kirishda telefon yoki parol xato.");
+        setLocalError("Tizimga kirishda xatolik.");
+        dispatch(authFailure("Login failed"));
       }
     } catch (err) {
-      console.error("Error details:", err);
-      setError(
-        "Xatolik yuz berdi. " + (err.response?.data?.Error || "Unknown error")
-      );
-    } finally {
-      setLoading(false);
+      const msg = err.response?.data?.Error || "Xatolik yuz berdi";
+      setLocalError(msg);
+      dispatch(authFailure(msg));
     }
   };
 
@@ -114,22 +112,19 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
           {step === 1
             ? "Raqamingizni kiriting"
             : isExistingUser
-            ? "Login"
-            : "Akkaunt ochish"}
+              ? "Login"
+              : "Akkaunt ochish"}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           {step === 1 && (
-            <Form.Group controlId="Telefon raqam">
+            <Form.Group className="mb-3">
               <Form.Control
                 type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
-                pattern="[+]{1}[9]{1}[9]{1}[8]{1}[0-9]{9}"
                 placeholder="+998"
+                pattern="[+]{1}[9]{1}[9]{1}[8]{1}[0-9]{9}"
                 onChange={(e) => setPhone_number(e.target.value)}
-                onBlur={handlePhoneNumberCheck}
                 required
               />
             </Form.Group>
@@ -137,7 +132,7 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
           {step === 2 && (
             <>
               {!isExistingUser && (
-                <Form.Group controlId="fullName">
+                <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
                     placeholder="FIO *"
@@ -146,7 +141,7 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
                   />
                 </Form.Group>
               )}
-              <Form.Group controlId="password">
+              <Form.Group className="mb-3">
                 <Form.Control
                   type="password"
                   placeholder="Parol"
@@ -156,31 +151,21 @@ export default function AdventureModal({ adventure, showModal, handleClose }) {
               </Form.Group>
             </>
           )}
-          {error && <p className="text-danger">{error}</p>}
+
+          {(localError || reduxError) && (
+            <p className="text-danger">{localError || reduxError}</p>
+          )}
+
           <Modal.Footer>
-            <Button type="submit" variant="primary" disabled={loading}>
-              {loading ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                  />{" "}
-                  Yuklanmoqda...
-                </>
+            <Button type="submit" variant="primary" disabled={isLoading}>
+              {isLoading ? (
+                <Spinner as="span" animation="border" size="sm" />
               ) : step === 1 ? (
                 "Keyingisi"
               ) : (
                 "Bron qilish"
               )}
             </Button>
-            {step === 2 && (
-              <Button variant="secondary" onClick={handleClose}>
-                Yopish
-              </Button>
-            )}
           </Modal.Footer>
         </Form>
       </Modal.Body>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
-import { putPost } from "../../../../http/postsApi";
+import { putPost } from "../../../../service/postsApi";
 import { BASE_URL } from "../../../../api/host/host";
 
 export default function PostEdit({

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/header/header";
 import Footer from "../../components/footer/footer";
 import { useParams } from "react-router-dom";
@@ -8,11 +8,10 @@ import { HelmetProvider, Helmet } from "react-helmet-async";
 import { Button } from "react-bootstrap";
 import AdventureModal from "../adventure/Modal";
 import CustomCarousel from "../../components/carousel/carousel";
-import { getRegions } from "../../http/usersApi";
+import { getRegions } from "../../service/usersApi";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useCart } from "../../context/CartContext";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -56,7 +55,6 @@ export default function Detail() {
         console.error(err);
       });
   }, []);
-  const { addToCart } = useCart();
 
   const handleBook = () => {
     // Agar joylar tugagan bo‘lsa
@@ -65,11 +63,9 @@ export default function Detail() {
       return;
     }
 
-    const result = addToCart(tour);
-
-    if (result === "max") {
+    if ("max") {
       alert("Siz maksimal bron limitiga yetdingiz!");
-    } else if (result === "added") {
+    } else if ("added") {
       alert("Tur savatga qo‘shildi!");
     }
   };
@@ -89,7 +85,7 @@ export default function Detail() {
 
           // Hammasiga axios so‘rov yuborish
           const tourPromises = serviceIds.map((serviceId) =>
-            axios.get(`${BASE_URL}/services/tour_services/${serviceId}`)
+            axios.get(`${BASE_URL}/services/tour_services/${serviceId}`),
           );
 
           const tourResponses = await Promise.all(tourPromises);

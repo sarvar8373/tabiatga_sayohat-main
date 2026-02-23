@@ -9,7 +9,7 @@
   position: relative;
 }
 .owl-carousel {
-  display: none;
+  display: block;
   width: 100%;
   z-index: 1;
 }
@@ -79,11 +79,11 @@
   font: inherit;
 }
 .owl-carousel.owl-loading {
-  opacity: 0;
+  opacity: 1;
   display: block;
 }
 .owl-carousel.owl-hidden {
-  opacity: 0;
+  opacity: 1;
 }
 .owl-carousel.owl-refresh .owl-item {
   visibility: hidden;

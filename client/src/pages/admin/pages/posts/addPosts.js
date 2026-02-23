@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
-import { getCategories, postPosts } from "../../../../http/postsApi";
-import { getUsers } from "../../../../http/usersApi";
+import { getCategories, postPosts } from "../../../../service/postsApi";
+import { getUsers } from "../../../../service/usersApi";
+import "react-quill/dist/quill.snow.css";
 
 export default function AddPosts() {
   const [category, setCategory] = useState([]);
@@ -78,7 +79,7 @@ export default function AddPosts() {
     } catch (error) {
       console.error(
         "Error creating post:",
-        error.response ? error.response.data : error.message
+        error.response ? error.response.data : error.message,
       );
       setStatus("danger");
       setMessage("Error occurred while creating post.");

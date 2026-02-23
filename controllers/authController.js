@@ -1,94 +1,102 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { DB } from "../utils/db.js";
+import util from "util";
 
 const salt = 10;
+const query = util.promisify(DB.query).bind(DB);
+const JWT_SECRET = "jwt_secret_key";
 
 // Handle user login
-const loginUser = (req, res) => {
+export const loginUser = async (req, res) => {
   const { phone_number, password } = req.body;
-  const sql = "SELECT * FROM users WHERE phone_number = ?";
-  DB.query(sql, [phone_number], (err, result) => {
-    if (err)
-      return res.status(500).json({ loginStatus: false, Error: "Query error" });
-    if (result.length > 0) {
-      bcrypt.compare(password, result[0].password, (err, isMatch) => {
-        if (err)
-          return res
-            .status(500)
-            .json({ loginStatus: false, Error: "Error comparing passwords" });
-        if (isMatch) {
-          const { id, phone_number, full_name, role, region_id, district_id } =
-            result[0];
-          const token = jwt.sign(
-            { id, phone_number, full_name, role, region_id, district_id },
-            "jwt_secret_key",
-            { expiresIn: "1d" }
-          );
-          res.cookie("token", token, {
-            secure: true,
-            sameSite: "None",
-            maxAge: 24 * 60 * 60 * 1000,
-          });
-          return res.json({ token, loginStatus: true });
-        } else {
-          return res.status(401).json({
-            loginStatus: false,
-            Error: "Wrong phone number or password",
-          });
-        }
-      });
-    } else {
+
+  try {
+    const users = await query("SELECT * FROM users WHERE phone_number = ?", [
+      phone_number,
+    ]);
+
+    if (users.length === 0) {
       return res
         .status(401)
-        .json({ loginStatus: false, Error: "Wrong phone number or password" });
+        .json({ loginStatus: false, Error: "Raqam topilmadi" });
     }
-  });
+
+    const user = users[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ loginStatus: false, Error: "Parol xato" });
+    }
+
+    // Token yaratish
+    const payload = {
+      id: user.id,
+      phone_number: user.phone_number,
+      full_name: user.full_name,
+      role: user.role,
+      region_id: user.region_id,
+      district_id: user.district_id,
+    };
+
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
+
+    return res.json({
+      loginStatus: true,
+      token: token,
+      user: payload, // Frontend kutayotgan format
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ loginStatus: false, Error: "Server xatosi" });
+  }
 };
 
 // Handle user logout
-const logoutUser = (req, res) => {
+export const logoutUser = (req, res) => {
   res.clearCookie("token");
   res.json({ success: true });
 };
-
 // Add a new user
-const addUser = (req, res) => {
+export const addUser = async (req, res) => {
   const { phone_number, full_name, password, role = "customer" } = req.body;
-  bcrypt.hash(password, salt, (err, hash) => {
-    if (err)
-      return res
-        .status(500)
-        .json({ Status: false, Error: "Error hashing password" });
+
+  try {
+    const hash = await bcrypt.hash(password, saltRounds);
     const sql =
       "INSERT INTO users (phone_number, full_name, password, role) VALUES (?, ?, ?, ?)";
-    DB.query(sql, [phone_number, full_name, hash, role], (err) => {
-      if (err)
-        return res.status(500).json({ Status: false, Error: "Query error" });
-      return res.json({ Status: true });
-    });
-  });
+    await query(sql, [phone_number, full_name, hash, role]);
+
+    return res.json({ Status: true });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ Status: false, Error: "Query xatosi yoki foydalanuvchi mavjud" });
+  }
 };
 
 // Get user info
-const getUserInfo = (req, res) => {
-  const { phone_number, full_name, role, region_id, district_id, id } =
-    req.user;
-  if (!id)
+export const getUserInfo = (req, res) => {
+  // verifyUser middleware req.user ni to'ldirib beradi
+  if (!req.user || !req.user.id) {
     return res
       .status(404)
-      .json({ Status: false, Message: "User information is not available." });
+      .json({ Status: false, Message: "Foydalanuvchi topilmadi" });
+  }
+
+  // Frontend App.js dagi dispatch(authSuccess(response.user)) ga moslash
   return res.json({
     Status: true,
-    phone_number,
-    full_name,
-    role,
-    region_id,
-    district_id,
-    id,
+    user: {
+      id: req.user.id,
+      phone_number: req.user.phone_number,
+      full_name: req.user.full_name,
+      role: req.user.role,
+      region_id: req.user.region_id,
+      district_id: req.user.district_id,
+    },
   });
 };
-
 // Check if phone number exists
 const checkPhoneNumber = (req, res) => {
   const { phone_number } = req.body;
@@ -101,26 +109,16 @@ const checkPhoneNumber = (req, res) => {
 };
 
 // Update user details
-const updateUser = (req, res) => {
+export const updateUser = async (req, res) => {
   const userID = req.params.id;
   const { phone_number, full_name, password, role, region_id, district_id } =
     req.body;
 
-  // Base SQL query and values
-  let sql =
-    "UPDATE users SET phone_number=?, full_name=?, role=?, region_id=?, district_id=? WHERE id=?";
-  let values = [phone_number, full_name, role, region_id, district_id, userID];
+  try {
+    let sql, values;
 
-  // If password is provided and not empty, hash it
-  if (password && password.trim() !== "") {
-    bcrypt.hash(password, salt, (hashErr, hash) => {
-      if (hashErr) {
-        console.error("Hash Error:", hashErr);
-        return res
-          .status(500)
-          .json({ Status: false, Error: "Error hashing password" });
-      }
-
+    if (password && password.trim() !== "") {
+      const hash = await bcrypt.hash(password, saltRounds);
       sql =
         "UPDATE users SET phone_number=?, full_name=?, password=?, role=?, region_id=?, district_id=? WHERE id=?";
       values = [
@@ -132,67 +130,25 @@ const updateUser = (req, res) => {
         district_id,
         userID,
       ];
+    } else {
+      sql =
+        "UPDATE users SET phone_number=?, full_name=?, role=?, region_id=?, district_id=? WHERE id=?";
+      values = [phone_number, full_name, role, region_id, district_id, userID];
+    }
 
-      // Perform the update query with password
-      DB.query(sql, values, (err, result) => {
-        if (err) {
-          console.error("SQL Error:", err);
-          return res
-            .status(500)
-            .json({ Status: false, Error: "Database error" });
-        }
+    const result = await query(sql, values);
 
-        if (result.affectedRows > 0) {
-          // Fetch and return the updated user data
-          DB.query(
-            "SELECT * FROM users WHERE id = ?",
-            [userID],
-            (fetchErr, rows) => {
-              if (fetchErr) {
-                console.error("SQL Error:", fetchErr);
-                return res
-                  .status(500)
-                  .json({ Status: false, Error: "Database error" });
-              }
-              return res.json({ Status: true, Result: rows[0] });
-            }
-          );
-        } else {
-          return res
-            .status(404)
-            .json({ Status: false, Error: "User not found or not updated" });
-        }
-      });
-    });
-  } else {
-    // Perform the update query without password
-    DB.query(sql, values, (err, result) => {
-      if (err) {
-        console.error("SQL Error:", err);
-        return res.status(500).json({ Status: false, Error: "Database error" });
-      }
+    if (result.affectedRows > 0) {
+      const updatedUser = await query(
+        "SELECT id, phone_number, full_name, role, region_id, district_id FROM users WHERE id = ?",
+        [userID],
+      );
+      return res.json({ Status: true, Result: updatedUser[0] });
+    }
 
-      if (result.affectedRows > 0) {
-        // Fetch and return the updated user data
-        DB.query(
-          "SELECT * FROM users WHERE id = ?",
-          [userID],
-          (fetchErr, rows) => {
-            if (fetchErr) {
-              console.error("SQL Error:", fetchErr);
-              return res
-                .status(500)
-                .json({ Status: false, Error: "Database error" });
-            }
-            return res.json({ Status: true, Result: rows[0] });
-          }
-        );
-      } else {
-        return res
-          .status(404)
-          .json({ Status: false, Error: "User not found or not updated" });
-      }
-    });
+    return res.status(404).json({ Status: false, Error: "Topilmadi" });
+  } catch (err) {
+    return res.status(500).json({ Status: false, Error: "Database xatosi" });
   }
 };
 
@@ -244,14 +200,4 @@ const handleQueryResult = (res) => (err, result) => {
         .json({ Status: false, Error: "User not found or not updated" });
 };
 
-export {
-  loginUser,
-  logoutUser,
-  addUser,
-  getUserInfo,
-  checkPhoneNumber,
-  updateUser,
-  getUserById,
-  getAllUsers,
-  deleteUser,
-};
+export { checkPhoneNumber, getUserById, getAllUsers, deleteUser };

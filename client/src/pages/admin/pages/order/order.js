@@ -3,10 +3,10 @@ import axios from "axios";
 import { BASE_URL } from "../../../../api/host/host";
 import SearchItem from "../../../../components/search-item/searchItem";
 import debounce from "lodash/debounce";
-import { useAuth } from "../../../../context/AuthContext";
-import { getUserID, getUsers } from "../../../../http/usersApi";
-import { deleteOrder, getOrder } from "../../../../http/orderApi";
+import { getUserID, getUsers } from "../../../../service/usersApi";
+import { deleteOrder, getOrder } from "../../../../service/orderApi";
 import OrderView from "./orderView";
+import { useSelector } from "react-redux";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -29,7 +29,7 @@ export default function Orders() {
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filterOrders.slice(indexOfFirstPost, indexOfLastPost);
   const totalPages = Math.ceil(filterOrders.length / postsPerPage);
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   useEffect(() => {
@@ -38,15 +38,15 @@ export default function Orders() {
         const response = await getOrder();
         if (response.data.Status) {
           const orders =
-            userDetails.role === "admin"
+            user.role === "admin"
               ? response.data.Result
               : response.data.Result.filter(
-                  (orders) => orders.user_id === userDetails.id
+                  (orders) => orders.user_id === user.id,
                 );
           setOrders(orders);
           setFilterOrders(orders);
           const tourPromises = orders.map((order) =>
-            axios.get(`${BASE_URL}/tours/tour/${order.tour_id}`)
+            axios.get(`${BASE_URL}/tours/tour/${order.tour_id}`),
           );
           const tourResponses = await Promise.all(tourPromises);
           const tourMap = {};
@@ -61,7 +61,7 @@ export default function Orders() {
           setTourPrice(tourPrice);
           // Fetch user details for each order
           const userPromises = response.data.Result.map((order) =>
-            getUserID(order.user_id)
+            getUserID(order.user_id),
           );
           const userResponses = await Promise.all(userPromises);
           const userMap = {};
@@ -125,16 +125,16 @@ export default function Orders() {
       //   .toLowerCase()
       //   .includes(fioSearchTerm);
 
-      if (userDetails && userDetails.role === "region") {
+      if (user && user.role === "region") {
         // For users with "region" role, only show "district" and "user" roles
         if (order.role === "district" || order.role === "user") {
-          return matchesAuthor && order.user_id === userDetails.user_id;
+          return matchesAuthor && order.user_id === user.user_id;
         }
         return false;
       }
-      if (userDetails && userDetails.role === "district") {
+      if (user && user.role === "district") {
         if (order.role === "user") {
-          return matchesAuthor && order.user_id === userDetails.user_id;
+          return matchesAuthor && order.user_id === user.user_id;
         }
         return false;
       }

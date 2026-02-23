@@ -1,16 +1,20 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { getDistricts, getRegions, getUsers } from "../../../../http/usersApi";
+import {
+  getDistricts,
+  getRegions,
+  getUsers,
+} from "../../../../service/usersApi";
 import {
   deleteOrganization,
   getOrganizations,
   updateOrganizationCause,
   updateOrganizationStatus,
-} from "../../../../http/organizationApi";
+} from "../../../../service/organizationApi";
 import debounce from "lodash/debounce";
 import OrganizationEdit from "./organizationEdit";
-import { useAuth } from "../../../../context/AuthContext";
 import SearchItem from "../../../../components/search-item/searchItem";
 import OrganizationView from "./organizationView";
+import { useSelector } from "react-redux";
 
 export default function OrganizationList() {
   const [organizations, setOrganizations] = useState([]);
@@ -33,7 +37,7 @@ export default function OrganizationList() {
   const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     getRegions()
@@ -98,13 +102,13 @@ export default function OrganizationList() {
             prevOrganization.map((organization) =>
               organization.id === id
                 ? { ...organization, status: newStatus }
-                : organization
-            )
+                : organization,
+            ),
           );
           setFilteredPosts((prevFilteredPosts) =>
             prevFilteredPosts.map((post) =>
-              post.id === id ? { ...post, status: newStatus } : post
-            )
+              post.id === id ? { ...post, status: newStatus } : post,
+            ),
           );
         }
       })
@@ -118,13 +122,13 @@ export default function OrganizationList() {
             prevOrganization.map((organization) =>
               organization.id === id
                 ? { ...organization, cause: newCause }
-                : organization
-            )
+                : organization,
+            ),
           );
           setFilteredPosts((prevFilteredPosts) =>
             prevFilteredPosts.map((post) =>
-              post.id === id ? { ...post, status: newCause } : post
-            )
+              post.id === id ? { ...post, status: newCause } : post,
+            ),
           );
         }
       })
@@ -161,49 +165,49 @@ export default function OrganizationList() {
       const matchesOrg = post.org_name.toLowerCase().includes(orgSearchTerm);
       const matchesPhone = post.phone.toLowerCase().includes(phoneSearchTerm);
 
-      if (userDetails) {
-        if (userDetails.role === "region") {
+      if (user) {
+        if (user.role === "region") {
           return (
             matchesInn &&
             matchesOrg &&
             matchesPhone &&
-            post.region_id === userDetails.region_id
+            post.region_id === user.region_id
           );
         }
-        if (userDetails.role === "district") {
+        if (user.role === "district") {
           return (
             matchesInn &&
             matchesOrg &&
             matchesPhone &&
-            post.district_id === userDetails.district_id
+            post.district_id === user.district_id
           );
         }
-        if (userDetails.role === "user") {
+        if (user.role === "user") {
           return (
             matchesInn &&
             matchesOrg &&
             matchesPhone &&
-            post.user_id === userDetails.user_id
+            post.user_id === user.user_id
           );
         }
       }
       return matchesInn && matchesOrg && matchesPhone;
     });
     setFilteredPosts(filtered);
-  }, [organizations, searchTerm, searchTerm1, searchTerm2, userDetails]);
+  }, [organizations, searchTerm, searchTerm1, searchTerm2, user]);
 
   const handleSave = (updatedAdobe) => {
     if (updatedAdobe && updatedAdobe.id) {
       setOrganizations((prevOrganization) => {
         const updatedOrganization = prevOrganization.map((organization) =>
-          organization.id === updatedAdobe.id ? updatedAdobe : organization
+          organization.id === updatedAdobe.id ? updatedAdobe : organization,
         );
         return updatedOrganization;
       });
 
       setFilteredPosts((prevFilteredPosts) => {
         const updatedFilteredPosts = prevFilteredPosts.map((adobe) =>
-          adobe.id === updatedAdobe.id ? updatedAdobe : adobe
+          adobe.id === updatedAdobe.id ? updatedAdobe : adobe,
         );
         return updatedFilteredPosts;
       });
@@ -329,7 +333,7 @@ export default function OrganizationList() {
                       >
                         <i className="fas fa-eye"></i>
                       </button>
-                      {["admin", "user"].includes(userDetails.role) && (
+                      {["admin", "user"].includes(user.role) && (
                         <button
                           onClick={() => handleEdit(c)}
                           className="btn btn-warning mx-3"

@@ -17,6 +17,13 @@ body {
   position: relative;
   overflow-x: hidden;
 }
+.gl {
+  width: 100%;
+}
+.partner-wrap {
+  display: flex;
+  justify-content: space-between;
+}
 /* ==== 2. Typography ==== */
 /* === 1.2 Hyperlink === */
 a {

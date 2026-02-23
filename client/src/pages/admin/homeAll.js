@@ -1,39 +1,39 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Customers from "./pages/customer";
 import Home from "./pages/home";
 import Region from "./pages/region";
 import District from "./pages/district";
 import Bussiness from "./pages/bussiness";
-import { getUserDetails } from "../../http/usersApi";
+import { useSelector } from "react-redux";
 
 export default function HomeAll() {
-  const [userDetails, setUserDetails] = useState("");
-  useEffect(() => {
-    getUserDetails()
-      .then((result) => {
-        if (result.data.Status) {
-          setUserDetails(result.data);
-          console.log(result.data);
-        } else {
-          console.error(result.data.Error);
-          console.log(result.data.Error);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        // Additional error handling if needed
-      });
-  }, []);
+  const { user } = useSelector((state) => state.auth);
+  // useEffect(() => {
+  //   getUserDetails()
+  //     .then((result) => {
+  //       if (result.data.Status) {
+  //         setUserDetails(result.data);
+  //         console.log(result.data);
+  //       } else {
+  //         console.error(result.data.Error);
+  //         console.log(result.data.Error);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.error(err);
+  //       // Additional error handling if needed
+  //     });
+  // }, []);
   return (
     <div>
       {" "}
-      {userDetails.role === "admin" ? (
+      {user.role === "admin" ? (
         <Home />
-      ) : userDetails.role === "region" ? (
+      ) : user.role === "region" ? (
         <Region />
-      ) : userDetails.role === "district" ? (
+      ) : user.role === "district" ? (
         <District />
-      ) : userDetails.role === "user" ? (
+      ) : user.role === "user" ? (
         <Bussiness />
       ) : (
         <Customers />

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import AddCategory from "./addCategory";
 import EditCategory from "./editCategory";
-import { getCategories } from "../../../../http/postsApi";
-import { deleteCategory, putCategory } from "../../../../http/categryApi";
+import { getCategories } from "../../../../service/postsApi";
+import { deleteCategory, putCategory } from "../../../../service/categryApi";
 
 export default function Category() {
   const [category, setCategory] = useState([]);
@@ -60,15 +60,15 @@ export default function Category() {
             category.map((c) =>
               c.id === updatedCategory.id
                 ? { ...c, name: updatedCategory.name }
-                : c
-            )
+                : c,
+            ),
           );
           setFilteredPosts(
             filteredPosts.map((c) =>
               c.id === updatedCategory.id
                 ? { ...c, name: updatedCategory.name }
-                : c
-            )
+                : c,
+            ),
           );
           setShowEditCategoryModal(false); // Close the edit modal
         } else {
@@ -92,7 +92,7 @@ export default function Category() {
       const filtered = category.filter(
         (category) =>
           category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          category.id.toString().includes(searchTerm)
+          category.id.toString().includes(searchTerm),
       );
       setFilteredPosts(filtered);
     }

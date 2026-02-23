@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { getNotification } from "../../../../http/notificationApi";
+import { getNotification } from "../../../../service/notificationApi";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { getUsers } from "../../../../http/usersApi";
-import { useAuth } from "../../../../context/AuthContext";
+import { getUsers } from "../../../../service/usersApi";
+import { useSelector } from "react-redux";
 
 export default function Notification() {
   const [notification, setNotification] = useState([]);
   const [authors, setAuthors] = useState([]);
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     getUsers()
@@ -26,10 +26,10 @@ export default function Notification() {
       .then((notificationResult) => {
         if (notificationResult.data.Status) {
           const notifications =
-            userDetails.role === "admin"
+            user.role === "admin"
               ? notificationResult.data.Result
               : notificationResult.data.Result.filter(
-                  (notification) => notification.user_id === userDetails.id
+                  (notification) => notification.user_id === user.id,
                 );
           setNotification(notifications);
         } else {
@@ -37,7 +37,7 @@ export default function Notification() {
         }
       })
       .catch((err) => console.log(err));
-  }, [userDetails]); // Add userDetails as a dependency
+  }, [user]); // Add user as a dependency
 
   const getBackgroundColor = (type) => {
     switch (type) {

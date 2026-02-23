@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { postCategory } from "../../../../http/categryApi"; // Fixed typo in the import path
+import { postCategory } from "../../../../service/categryApi"; // Fixed typo in the import path
 
 export default function AddCategory({ onCategoryAdded }) {
   const [categoryName, setCategoryName] = useState("");

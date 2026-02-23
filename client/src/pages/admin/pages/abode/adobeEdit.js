@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { putTour } from "../../../../http/adobeApi";
-import { useAuth } from "../../../../context/AuthContext";
+import { useEffect, useState } from "react";
+import { putTour } from "../../../../service/adobeApi";
 import { BASE_URL } from "../../../../api/host/host";
-import { getSelectRegion } from "../../../../http/usersApi";
-import { getOrganizations } from "../../../../http/organizationApi";
+import { getSelectRegion } from "../../../../service/usersApi";
+import { getOrganizations } from "../../../../service/organizationApi";
 import MapLocationPicker from "../../../../components/MapLocationPicker";
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function AdobeEdit({
   adobe,
@@ -16,9 +16,8 @@ export default function AdobeEdit({
   onCancel,
 }) {
   const navigate = useNavigate();
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
 
-  // 🔵 barcha maydonlarni state-ga joylash
   const [editData, setEditData] = useState({
     ...adobe,
     tourism_service_id: adobe.tourism_service_id
@@ -37,7 +36,7 @@ export default function AdobeEdit({
 
   // 🔵 tashkilotlar load
   useEffect(() => {
-    if (userDetails.role === "admin") {
+    if (user.role === "admin") {
       getOrganizations().then((res) => {
         if (res.data.Status) setOrganizations(res.data.Result);
       });
@@ -56,8 +55,8 @@ export default function AdobeEdit({
 
   // 🔵 region & district filter
   useEffect(() => {
-    if (userDetails.role === "region") {
-      setFilteredRegions(regions.filter((r) => r.id === userDetails.region_id));
+    if (user.role === "region") {
+      setFilteredRegions(regions.filter((r) => r.id === user.region_id));
     } else {
       setFilteredRegions(regions);
     }
@@ -139,7 +138,7 @@ export default function AdobeEdit({
       </div>
 
       {/* Tashkilot */}
-      {userDetails.role === "admin" && (
+      {user.role === "admin" && (
         <div className="form-group">
           <label>Tashkilot</label>
           <select
@@ -172,7 +171,7 @@ export default function AdobeEdit({
           onChange={(vals) =>
             handleChange(
               "tourism_service_id",
-              vals.map((v) => v.value)
+              vals.map((v) => v.value),
             )
           }
         />

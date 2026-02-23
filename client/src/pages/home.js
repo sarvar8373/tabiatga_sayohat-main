@@ -10,7 +10,7 @@ import Footer from "../components/footer/footer";
 import Adventure from "./home/adveture";
 import Guide from "./home/guide";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-export default function Home() {
+export default function ZHome() {
   return (
     <div>
       <HelmetProvider>

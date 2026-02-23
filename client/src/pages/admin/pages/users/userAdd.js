@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { postRegister } from "../../../../http/usersApi";
+import { postRegister } from "../../../../service/usersApi";
 
 export default function UserAdd() {
   const [phone_number, setPhone_number] = useState("");

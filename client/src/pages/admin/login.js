@@ -1,26 +1,21 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/header/header";
 import Footer from "../../components/footer/footer";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { postLogin } from "../../http/usersApi";
+import AuthService from "../../service/usersApi";
 import { HelmetProvider, Helmet } from "react-helmet-async";
-import Alert from "../../components/alert/alert";
-import { useAuth } from "../../context/AuthContext";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-// Set withCredentials globally
-axios.defaults.withCredentials = true;
+import { useDispatch, useSelector } from "react-redux";
+import { authFailure, authStart, authSuccess } from "../../slice/auth";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { loggedIn } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [logPhone_number, setPhone_number] = useState("+998");
   const [logPassword, setPassword] = useState("");
-
-  const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const [cls, setCls] = useState("none");
 
   useEffect(() => {
     const storedUserName = localStorage.getItem("rememberedUserName");
@@ -31,42 +26,35 @@ export default function Login() {
       setPassword(storedPassword);
       setRememberMe(true);
     }
-  }, []);
+    if (loggedIn) {
+      navigate("/dashboard");
+    }
+  }, [loggedIn, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await login(logPhone_number, logPassword);
+    const user = {
+      phone_number: logPhone_number,
+      password: logPassword,
+    };
+    dispatch(authStart());
     try {
-      const result = await postLogin({
-        phone_number: logPhone_number,
-        password: logPassword,
-      });
+      const response = await AuthService.userLogin(user);
+      console.log(response);
 
-      if (result.data.loginStatus) {
-        navigate("/dashboard");
-      } else {
-        setCls("flex");
-        setError(result.data.Error);
-      }
-    } catch (err) {
+      dispatch(authSuccess(response));
+      navigate("/");
+    } catch (error) {
+      const errorMessage = error.response?.data.errors;
+
+      dispatch(authFailure(errorMessage));
+
       console.error(
-        "Login error:",
-        err.response ? err.response.data : err.message
+        "Xatolik tafsiloti:",
+        error.response?.data.errors || error.message,
       );
-      setCls("flex");
-      setError("Telefon raqam yoki parol noto'g'ri");
     }
   };
-
-  useEffect(() => {
-    if (error !== "") {
-      const timeoutId = setTimeout(() => {
-        setCls("none");
-      }, 4000);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [error]);
 
   return (
     <div>
@@ -110,8 +98,6 @@ export default function Login() {
               </div>
               <div className="login-form">
                 <form onSubmit={handleSubmit} className="gane-form">
-                  <Alert error={error} cls={{ display: cls }} />
-
                   <div className="form-left">
                     <div className="single-field">
                       <label htmlFor="phoneNumber">Telefon raqam</label>

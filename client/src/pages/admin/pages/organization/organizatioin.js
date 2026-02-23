@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   postOrganization,
   getOrganization,
@@ -8,13 +8,13 @@ import {
   getSelectRegion,
   getUsers,
 } from "../../../../http/usersApi";
-import { useAuth } from "../../../../context/AuthContext";
 import { postNotification } from "../../../../http/notificationApi";
 import { getTourService } from "../../../../http/tourServices";
 import Select from "react-select";
+import { useSelector } from "react-redux";
 
 export default function Organization() {
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const [regions, setRegions] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [error, setError] = useState("");
@@ -41,7 +41,7 @@ export default function Organization() {
     goods_issued_by: "",
     excise_tax: [],
     notification_id: "",
-    user_id: userDetails.id,
+    user_id: user.id,
     status: "0",
   });
   useEffect(() => {
@@ -92,31 +92,27 @@ export default function Organization() {
     }
   }, [selectedRegion]);
   useEffect(() => {
-    if (userDetails.role === "region" && userDetails.region_id) {
+    if (user.role === "region" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
-      setSelectedRegion(userDetails.region_id);
+      setSelectedRegion(user.region_id);
       setSelectedDistrict("");
       setDistricts([]);
-    } else if (
-      userDetails.role === "district" &&
-      userDetails.region_id &&
-      userDetails.district_id
-    ) {
+    } else if (user.role === "district" && user.region_id && user.district_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
       if (regions.length > 0) {
-        getSelectRegion(userDetails.region_id)
+        getSelectRegion(user.region_id)
           .then((response) => {
             if (response.data.Status) {
               const filteredDistricts = response.data.Result.filter(
-                (district) => district.id === userDetails.district_id
+                (district) => district.id === user.district_id,
               );
               setDistricts(filteredDistricts);
-              setSelectedRegion(userDetails.region_id);
-              setSelectedDistrict(userDetails.district_id);
+              setSelectedRegion(user.region_id);
+              setSelectedDistrict(user.district_id);
             } else {
               setError(response.data.Error);
             }
@@ -132,7 +128,7 @@ export default function Organization() {
       setSelectedRegion("");
       setSelectedDistrict("");
     }
-  }, [regions, userDetails]);
+  }, [regions, user]);
   useEffect(() => {
     // Fetch users for author dropdown
     getUsers()
@@ -146,7 +142,7 @@ export default function Organization() {
       .catch((err) => console.log(err));
 
     // Fetch organization data for the user
-    getOrganization(userDetails.id)
+    getOrganization(user.id)
       .then((orgResult) => {
         if (orgResult.data.Status && orgResult.data.Result.length > 0) {
           setFormData((prevData) => ({
@@ -157,7 +153,7 @@ export default function Organization() {
         }
       })
       .catch((err) => console.log(err));
-  }, [userDetails.id]);
+  }, [user.id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -442,7 +438,7 @@ export default function Organization() {
                 name="excise_tax"
                 placeholder="Faoliyatni tanglang"
                 value={options.filter((option) =>
-                  formData.excise_tax.includes(option.value)
+                  formData.excise_tax.includes(option.value),
                 )}
                 onChange={handleChange}
                 options={options}
@@ -459,7 +455,7 @@ export default function Organization() {
               />
             </div>
 
-            {userDetails.role === "admin" && (
+            {user.role === "admin" && (
               <div className="single-field half-field">
                 <div className="form-group my-3">
                   <select

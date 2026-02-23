@@ -10,8 +10,8 @@ export default function Footer() {
           <div className="row">
             <div className="col-lg-4 col-sm-8">
               <div className="widget contact-widget">
-                <h3>{t("footer.about")}</h3>
-                <p>{t("footer.about_text")}</p>
+                <h3>{t("about")}</h3>
+                <p>{t("about_text")}</p>
                 <ul>
                   <li>
                     <a href="#">
@@ -43,42 +43,42 @@ export default function Footer() {
             </div>
             <div className="col-lg-4 col-sm-8">
               <div className="widget quick-link-categories">
-                <h3>{t("footer.menu")}</h3>
+                <h3>{t("menu")}</h3>
                 <ul>
                   <li>
                     <a href="#">
                       <i className="fal fa-angle-right"></i>
-                      {t("footer.ex")}
+                      {t("ex")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
                       <i className="fal fa-angle-right"></i>
-                      {t("footer.places")}
+                      {t("places")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
                       <i className="fal fa-angle-right"></i>
-                      {t("footer.eco")}
+                      {t("eco")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
                       <i className="fal fa-angle-right"></i>
-                      {t("footer.routes")}
+                      {t("routes")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
                       <i className="fal fa-angle-right"></i>
-                      {t("footer.travel")}
+                      {t("travel")}
                     </a>
                   </li>
                   <li>
                     <a href="#">
                       <i className="fal fa-angle-right"></i>
-                      {t("footer.contact")}
+                      {t("contact")}
                     </a>
                   </li>
                 </ul>
@@ -86,22 +86,21 @@ export default function Footer() {
             </div>
             <div className="col-lg-4 col-sm-8">
               <div className="widget contact-us">
-                <h3>{t("footer.contact")}</h3>
+                <h3>{t("contact")}</h3>
                 <ul>
                   <li>
                     <a>
-                      <i className="fal fa-paper-plane"></i>{" "}
-                      {t("footer.address")}
+                      <i className="fal fa-paper-plane"></i> {t("address")}
                     </a>
                   </li>
                   <li>
                     <a>
-                      <i className="fal fa-envelope"></i> {t("footer.email")}
+                      <i className="fal fa-envelope"></i> {t("email")}
                     </a>
                   </li>
                   <li>
                     <a>
-                      <i className="fal fa-phone-alt"></i> {t("footer.phone")}
+                      <i className="fal fa-phone-alt"></i> {t("phone")}
                     </a>
                   </li>
                 </ul>
@@ -115,7 +114,7 @@ export default function Footer() {
           <div className="row">
             <div className="col-sm-8">
               <div className="copyright-text text-center">
-                <p>{t("footer.copy")}</p>
+                <p>{t("copy")}</p>
               </div>
             </div>
           </div>

@@ -1,88 +1,27 @@
-import React, { useEffect, useState } from "react";
-import {
-  getDistricts,
-  getRegions,
-  getUserDetails,
-} from "../../../http/usersApi";
+import { useSelector } from "react-redux";
+import { useLocation } from "../../../hooks/useLocations";
+
+const roleLabels = {
+  customer: "Foydalanuvchi",
+  admin: "Admin",
+  user: "Tadbirkor",
+  region: "Viloyat",
+  district: "Tuman",
+};
+
 export default function Profile() {
-  const [userDetails, setUserDetails] = useState("");
-  const [auth, setAuth] = useState(false);
-  const [regions, setRegions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [error, setError] = useState("");
+  const { user } = useSelector((state) => state.auth);
+  const { regions, districts } = useLocation(); // Hookdan tayyor ma'lumotlarni olamiz
 
-  // Role labels mapping
-  const roleLabels = {
-    customer: "Foydalanuvchi",
-    admin: "Admin",
-    user: "Tadbirkor",
-    region: "Viloyat",
-    district: "Tuman",
-  };
+  // Agar user hali yuklanmagan bo'lsa
+  if (!user) return <div className="text-center mt-5">Yuklanmoqda...</div>;
 
-  // Get the role label
-  const roleLabel = userDetails
-    ? roleLabels[userDetails.role] || "Unknown"
-    : "Unknown";
-
-  useEffect(() => {
-    // Fetch user details
-    getUserDetails()
-      .then((result) => {
-        if (result.data.Status) {
-          setAuth(true);
-          setUserDetails(result.data);
-        } else {
-          setError(result.data.Error || "Error fetching user details.");
-        }
-      })
-      .catch((err) => {
-        setError("Error fetching user details.");
-        console.error(err);
-      });
-  }, []);
-
-  useEffect(() => {
-    getRegions()
-      .then((response) => {
-        if (response.data.Status) {
-          setRegions(response.data.Result);
-        } else {
-          setError(response.data.Error || "Error fetching regions.");
-        }
-      })
-      .catch((err) => {
-        setError("Error fetching regions.");
-        console.error(err);
-      });
-  }, []);
-
-  useEffect(() => {
-    getDistricts()
-      .then((response) => {
-        if (response.data.Status) {
-          setDistricts(response.data.Result);
-        } else {
-          setError(response.data.Error || "Error fetching districts.");
-        }
-      })
-      .catch((err) => {
-        setError("Error fetching districts.");
-        console.error(err);
-      });
-  }, []);
-
-  // Function to get region name by ID
-  const getRegionName = (id) => {
-    const region = regions.find((r) => r.id === id);
-    return region ? region.name : "";
-  };
-
-  // Function to get district name by ID
-  const getDistrictName = (id) => {
-    const district = districts.find((d) => d.id === id);
-    return district ? district.name : "";
-  };
+  // Helper funksiyalar (memoization ishlatish ham mumkin, lekin hozirgi holatda shartmas)
+  const regionName =
+    regions.find((r) => r.id === user.region_id)?.name || "Yuklanmoqda...";
+  const districtName =
+    districts.find((d) => d.id === user.district_id)?.name || "Yuklanmoqda...";
+  const roleLabel = roleLabels[user.role] || "Noma'lum";
 
   return (
     <div className="container-fluid">
@@ -98,33 +37,25 @@ export default function Profile() {
         </div>
 
         <div className="profile-card__cnt js-profile-cnt">
-          <div className="profile-card__name">{userDetails.full_name}</div>
+          <div className="profile-card__name">{user.full_name}</div>
           <div className="profile-card-loc">
-            <span className="profile-card-loc__icon"></span>
-
-            <span className="profile-card-loc__txt"> {roleLabel}</span>
+            <span className="profile-card-loc__txt">{roleLabel}</span>
           </div>
 
           <div className="profile-card-inf">
             <div className="profile-card-inf__item">
-              <div className="profile-card-inf__title">
-                {userDetails.phone_number}
-              </div>
+              <div className="profile-card-inf__title">{user.phone_number}</div>
               <div className="profile-card-inf__txt">Telefon raqam</div>
             </div>
 
             <div className="profile-card-inf__item">
-              <div className="profile-card-inf__title">
-                {getRegionName(userDetails.region_id)}
-              </div>
-              <div className="profile-card-inf__txt">Tuman</div>
+              <div className="profile-card-inf__title">{regionName}</div>
+              <div className="profile-card-inf__txt">Viloyat</div>
             </div>
 
             <div className="profile-card-inf__item">
-              <div className="profile-card-inf__title">
-                {getDistrictName(userDetails.district_id)}
-              </div>
-              <div className="profile-card-inf__txt">Viloyat</div>
+              <div className="profile-card-inf__title">{districtName}</div>
+              <div className="profile-card-inf__txt">Tuman</div>
             </div>
           </div>
 
@@ -135,8 +66,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
     </div>
   );
 }

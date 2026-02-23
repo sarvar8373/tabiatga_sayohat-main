@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../../../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { logout } from "../../../slice/auth";
+import { removeItem } from "../../../helpers/persistans";
 
 export default function Sidebar() {
   const [isSidebarToggled, setIsSidebarToggled] = useState(false);
@@ -12,7 +14,14 @@ export default function Sidebar() {
   const [isCollapseTwoThree, setIsCollapseTwoThree] = useState(false);
   const [isCollapseTwoOw, setIsCollapseTwoOw] = useState(false);
 
-  const { userDetails, logout } = useAuth();
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleLogoutClick = () => {
+    dispatch(logout());
+    removeItem("token");
+    navigate("/login");
+  };
   const handleCollapseToggle = () => {
     setIsCollapseTwoOpen(!isCollapseTwoOpen);
   };
@@ -36,10 +45,8 @@ export default function Sidebar() {
     setIsCollapseTwoOw(!isCollapseTwoOw);
   };
 
-  // Handle window resize
   const handleResize = () => {
     if (window.innerWidth < 768) {
-      // Logic to hide collapse on smaller screens
     }
     if (window.innerWidth < 480 && !isSidebarToggled) {
       setIsSidebarToggled(true);
@@ -53,14 +60,10 @@ export default function Sidebar() {
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", () =>
-        setScrollPosition(window.scrollY)
+        setScrollPosition(window.scrollY),
       );
     };
   }, [isSidebarToggled]);
-
-  const handleLogoutClick = () => {
-    logout();
-  };
 
   return (
     <ul
@@ -87,7 +90,7 @@ export default function Sidebar() {
         </Link>
       </li>
       <hr className="sidebar-divider" />
-      {/* {userDetails.role === "user" && (
+      {/* {user.role === "user" && (
         <li className="nav-item ">
           <Link className="nav-link" to="./organization">
             <i className="fas fa-fw fa-building"></i>
@@ -98,7 +101,7 @@ export default function Sidebar() {
       )} */}
 
       <div className="sidebar-heading">Admin</div>
-      {["admin", "region", "district", "user"].includes(userDetails.role) && (
+      {["admin", "region", "district", "user"].includes(user.role) && (
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -121,7 +124,7 @@ export default function Sidebar() {
             data-parent="#accordionSidebar"
           >
             <div className="bg-dark py-2 collapse-inner rounded">
-              {["admin", "user"].includes(userDetails.role) && (
+              {["admin", "user"].includes(user.role) && (
                 <div>
                   <Link
                     className="collapse-item text-secondary"
@@ -141,7 +144,7 @@ export default function Sidebar() {
           </div>
         </li>
       )}
-      {userDetails.role === "admin" && (
+      {user.role === "admin" && (
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -177,7 +180,7 @@ export default function Sidebar() {
           </div>
         </li>
       )}
-      {["admin", "region", "district", "user"].includes(userDetails.role) && (
+      {["admin", "region", "district", "user"].includes(user.role) && (
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -239,7 +242,7 @@ export default function Sidebar() {
           </div>
         </div>
       </li>
-      {userDetails.role === "admin" && (
+      {user.role === "admin" && (
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -298,10 +301,10 @@ export default function Sidebar() {
       )}
 
       <hr className="sidebar-divider" />
-      {["admin", "region", "district"].includes(userDetails.role) && (
+      {["admin", "region", "district"].includes(user.role) && (
         <div className="sidebar-heading">Foydalanuvchilar</div>
       )}
-      {["region", "district"].includes(userDetails.role) && (
+      {["region", "district"].includes(user.role) && (
         <li className="nav-item ">
           <Link className="nav-link" to="./users-list">
             <i className="fas fa-fw fa-building"></i>
@@ -310,7 +313,7 @@ export default function Sidebar() {
           <hr className="sidebar-divider" />
         </li>
       )}
-      {["admin"].includes(userDetails.role) && (
+      {["admin"].includes(user.role) && (
         <li className="nav-item">
           <Link
             className="nav-link collapsed"

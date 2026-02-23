@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { putOrganization } from "../../../../http/organizationApi";
-import { useAuth } from "../../../../context/AuthContext";
-import { editNotification } from "../../../../http/notificationApi";
-import { getSelectRegion } from "../../../../http/usersApi";
+import { useEffect, useState } from "react";
+import { putOrganization } from "../../../../service/organizationApi";
+
+import { editNotification } from "../../../../service/notificationApi";
+import { getSelectRegion } from "../../../../service/usersApi";
+import { useSelector } from "react-redux";
 
 const OrganizationEdit = ({
   organization,
@@ -11,7 +12,7 @@ const OrganizationEdit = ({
   onSave,
   onCancel,
 }) => {
-  const { userDetails } = useAuth();
+  const { user } = useSelector((state) => state.auth);
   const [editOrganization, setEditOrganization] = useState(organization);
   const [originalStatus, setOriginalStatus] = useState(editOrganization.status);
   const [filteredRegions, setFilteredRegions] = useState(regions);
@@ -30,33 +31,33 @@ const OrganizationEdit = ({
   }, [organization]);
 
   useEffect(() => {
-    if (userDetails.role === "region" && userDetails.region_id) {
+    if (user.role === "region" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
-      setSelectedRegion(userDetails.region_id);
+      setSelectedRegion(user.region_id);
       setFilteredDistricts([]);
-    } else if (userDetails.role === "district" && userDetails.region_id) {
+    } else if (user.role === "district" && user.region_id) {
       setFilteredRegions(
-        regions.filter((region) => region.id === userDetails.region_id)
+        regions.filter((region) => region.id === user.region_id),
       );
 
-      getSelectRegion(userDetails.region_id)
+      getSelectRegion(user.region_id)
         .then((response) => {
           if (response.data.Status) {
             const filteredDistricts = response.data.Result.filter(
-              (district) => district.id === userDetails.district_id
+              (district) => district.id === user.district_id,
             );
             setFilteredDistricts(filteredDistricts);
 
             setEditOrganization((prev) => ({
               ...prev,
-              region_id: userDetails.region_id,
-              district_id: userDetails.district_id,
+              region_id: user.region_id,
+              district_id: user.district_id,
             }));
 
-            setSelectedRegion(userDetails.region_id);
-            setSelectedDistrict(userDetails.district_id);
+            setSelectedRegion(user.region_id);
+            setSelectedDistrict(user.district_id);
           } else {
             setError(response.data.Error);
           }
@@ -69,7 +70,7 @@ const OrganizationEdit = ({
       setFilteredRegions(regions);
       setFilteredDistricts(districts);
     }
-  }, [regions, districts, userDetails]);
+  }, [regions, districts, user]);
 
   useEffect(() => {
     if (selectedRegion) {
@@ -316,7 +317,7 @@ const OrganizationEdit = ({
               />
             </div>
 
-            {userDetails.role === "admin" && (
+            {user.role === "admin" && (
               <div className="single-field half-field">
                 <div className="form-group my-3">
                   <select

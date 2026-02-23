@@ -7,8 +7,8 @@ import {
   deletePosts,
   getCategories,
   getPosts,
-} from "../../../../http/postsApi";
-import { getUsers } from "../../../../http/usersApi";
+} from "../../../../service/postsApi";
+import { getUsers } from "../../../../service/usersApi";
 
 export default function Posts() {
   const [posts, setPosts] = useState([]);
@@ -111,12 +111,12 @@ export default function Posts() {
   const handleSave = (updatedPost) => {
     if (updatedPost && updatedPost.id) {
       setPosts(
-        posts.map((post) => (post.id === updatedPost.id ? updatedPost : post))
+        posts.map((post) => (post.id === updatedPost.id ? updatedPost : post)),
       );
       setFilteredPosts(
         filteredPosts.map((post) =>
-          post.id === updatedPost.id ? updatedPost : post
-        )
+          post.id === updatedPost.id ? updatedPost : post,
+        ),
       );
     }
     setEditMode(false);
@@ -185,7 +185,7 @@ export default function Posts() {
                   <td>{post.title}</td>
                   <td>
                     {categories.find(
-                      (category) => category.id === post.category_id
+                      (category) => category.id === post.category_id,
                     )?.name || "Unknown Category"}
                   </td>
                   <td>
